@@ -1,0 +1,768 @@
+<title>SCS-C03 Sprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#FAF8F5; --surface:#FFFFFF; --surface-2:#F3EFE9; --ink:#1B2430; --ink-soft:#5A6472;
+  --border:#E7E0D6; --border-strong:#D6CCBE;
+  --accent:#E07E2E; --accent-soft:#F7E7D6; --accent-ink:#B5611C;
+  --good:#2E9E63; --good-bg:#E4F3EA; --warn:#C98A2E; --warn-bg:#F7ECD6; --crit:#D65545; --crit-bg:#F8E3DF;
+  --d1:#2BA3A3; --d2:#E06C4F; --d3:#3D7BD9; --d4:#8A6DD9; --d5:#2E9E63; --d6:#C98A2E;
+  --shadow:0 1px 2px rgba(27,36,48,.06),0 6px 20px rgba(27,36,48,.06);
+  --shadow-lift:0 4px 14px rgba(27,36,48,.12);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141A22; --surface:#1E2731; --surface-2:#26313D; --ink:#E8EDF2; --ink-soft:#9AA7B4;
+  --border:#2C3844; --border-strong:#3A4855;
+  --accent:#F0924A; --accent-soft:#3A2A1B; --accent-ink:#F5A868;
+  --good:#48B87E; --good-bg:#173026; --warn:#E0A93B; --warn-bg:#332813; --crit:#E56B5A; --crit-bg:#37201d;
+  --d1:#3FC0C0; --d2:#F0846A; --d3:#5C95EC; --d4:#A487EC; --d5:#48B87E; --d6:#E0A93B;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);
+  --shadow-lift:0 4px 14px rgba(0,0,0,.45);
+}}
+:root[data-theme="dark"]{
+  --bg:#141A22; --surface:#1E2731; --surface-2:#26313D; --ink:#E8EDF2; --ink-soft:#9AA7B4;
+  --border:#2C3844; --border-strong:#3A4855;
+  --accent:#F0924A; --accent-soft:#3A2A1B; --accent-ink:#F5A868;
+  --good:#48B87E; --good-bg:#173026; --warn:#E0A93B; --warn-bg:#332813; --crit:#E56B5A; --crit-bg:#37201d;
+  --d1:#3FC0C0; --d2:#F0846A; --d3:#5C95EC; --d4:#A487EC; --d5:#48B87E; --d6:#E0A93B;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);
+  --shadow-lift:0 4px 14px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;display:flex;flex-direction:column}
+
+/* Header */
+.hdr{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 18px 12px}
+.hdr-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.wordmark{font-family:"Sora",sans-serif;font-weight:700;font-size:18px;letter-spacing:-.02em}
+.wordmark .code{color:var(--accent)}
+.countdown{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-soft);text-align:right;line-height:1.3}
+.countdown b{color:var(--ink);font-size:15px}
+.readbar{margin-top:11px;height:7px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.readbar>div{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent-ink));transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.readrow{display:flex;justify-content:space-between;align-items:center;margin-top:7px}
+.readrow .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft)}
+.readrow .val{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600}
+
+/* View area */
+.views{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 18px calc(96px + env(safe-area-inset-bottom))}
+.view{display:none;animation:fade .25s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+h2.vh{font-family:"Sora",sans-serif;font-size:22px;font-weight:700;letter-spacing:-.02em;margin:2px 0 3px;text-wrap:balance}
+.vsub{color:var(--ink-soft);font-size:13.5px;margin:0 0 16px}
+
+/* Phase heading */
+.phase{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+.phase:first-of-type{margin-top:6px}
+.phase .pn{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.phase .pt{font-family:"Sora",sans-serif;font-weight:600;font-size:14px}
+.phase .line{flex:1;height:1px;background:var(--border)}
+
+/* Day card */
+.day{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:10px;box-shadow:var(--shadow);transition:border-color .2s}
+.day.done{border-color:var(--good);background:linear-gradient(0deg,var(--good-bg),transparent 40%)}
+.day-h{display:flex;align-items:center;gap:11px}
+.daynum{flex:none;width:38px;height:38px;border-radius:11px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"IBM Plex Mono",monospace;line-height:1}
+.daynum .dl{font-size:8px;color:var(--ink-soft);letter-spacing:.05em}
+.daynum .dv{font-size:16px;font-weight:600}
+.day.done .daynum{background:var(--good);color:#fff}
+.day.done .daynum .dl{color:rgba(255,255,255,.8)}
+.day-ti{flex:1;min-width:0}
+.day-ti .t{font-weight:600;font-size:14.5px;line-height:1.25}
+.day-ti .dm{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-soft);margin-top:3px}
+.dot{width:8px;height:8px;border-radius:99px;flex:none}
+.tasks{list-style:none;margin:11px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.tasks li{display:flex;gap:9px;align-items:flex-start;padding:6px 4px;border-radius:8px}
+.tasks li .cb{flex:none;width:19px;height:19px;border-radius:6px;border:1.5px solid var(--border-strong);background:var(--surface);margin-top:1px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.tasks li.ck .cb{background:var(--good);border-color:var(--good)}
+.tasks li .cb svg{width:12px;height:12px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transition:.15s}
+.tasks li.ck .cb svg{opacity:1}
+.tasks li .tx{font-size:13px;color:var(--ink);line-height:1.4}
+.tasks li.ck .tx{color:var(--ink-soft);text-decoration:line-through}
+
+/* Chips / filters */
+.chips{display:flex;gap:7px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:500;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .dot{width:7px;height:7px}
+
+/* Flashcard */
+.fc-wrap{perspective:1400px;margin:4px 0 14px}
+.fc{position:relative;width:100%;min-height:340px;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,.7,.2,1);cursor:pointer}
+.fc.flip{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow-lift);padding:22px;display:flex;flex-direction:column}
+.fc-back{transform:rotateY(180deg);background:var(--surface)}
+.fc-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em}
+.fc-side{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--ink-soft);margin-left:auto;letter-spacing:.05em}
+.fc-q{font-family:"Sora",sans-serif;font-weight:600;font-size:20px;line-height:1.32;letter-spacing:-.01em;margin-top:auto;margin-bottom:auto;text-wrap:balance}
+.fc-a{font-size:15px;line-height:1.55;margin-top:14px;margin-bottom:auto;overflow-y:auto}
+.fc-a b{color:var(--accent-ink)}
+.fc-hint{font-size:11px;color:var(--ink-soft);text-align:center;margin-top:2px}
+.fc-ctr{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-soft);text-align:center;margin-bottom:8px}
+.fc-nav{display:flex;gap:9px;margin-top:2px}
+.fc-nav button{flex:1;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:12px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+.fc-nav .know{border-color:var(--good);color:var(--good)}
+.fc-nav .rev{border-color:var(--warn);color:var(--warn)}
+.fc-mini{display:flex;gap:8px;margin-top:9px;justify-content:center}
+.fc-mini button{border:none;background:var(--surface-2);color:var(--ink-soft);border-radius:9px;padding:8px 14px;font-size:12px;font-weight:500;display:inline-flex;gap:6px;align-items:center}
+.badge-known{display:inline-block;font-size:10px;font-weight:600;color:var(--good);background:var(--good-bg);border-radius:99px;padding:2px 8px;margin-left:8px;vertical-align:middle}
+
+/* Quiz */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.mode{border:1px solid var(--border);background:var(--surface);border-radius:14px;padding:15px 14px;text-align:left;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px}
+.mode.wide{grid-column:1/-1}
+.mode .mt{font-family:"Sora",sans-serif;font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px}
+.mode .md{font-size:12px;color:var(--ink-soft)}
+.mode .acc{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600}
+.dom-list{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.dom-btn{display:flex;align-items:center;gap:11px;border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:12px 13px;text-align:left;box-shadow:var(--shadow)}
+.dom-btn .nm{font-weight:600;font-size:13.5px;flex:1}
+.dom-btn .wt{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-soft)}
+.dom-btn .pill{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px}
+
+.qhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px}
+.qhead .qmeta{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-soft)}
+.qhead button{border:none;background:var(--surface-2);color:var(--ink-soft);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600}
+.qprog{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-bottom:16px}
+.qprog>div{height:100%;background:var(--accent);transition:width .3s}
+.qtag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:9px}
+.qmulti{font-size:10px;background:var(--accent-soft);color:var(--accent-ink);padding:2px 7px;border-radius:99px;letter-spacing:.03em}
+.qtext{font-family:"Sora",sans-serif;font-weight:600;font-size:17px;line-height:1.4;letter-spacing:-.01em;margin-bottom:16px;text-wrap:pretty}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{display:flex;gap:11px;align-items:flex-start;border:1.5px solid var(--border);background:var(--surface);border-radius:12px;padding:13px;font-size:14px;line-height:1.4;text-align:left;transition:.15s;color:var(--ink)}
+.opt .mk{flex:none;width:22px;height:22px;border-radius:7px;border:1.5px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--ink-soft);margin-top:1px}
+.opt.sel{border-color:var(--accent)}
+.opt.sel .mk{background:var(--accent);border-color:var(--accent);color:#fff}
+.opt.correct{border-color:var(--good);background:var(--good-bg)}
+.opt.correct .mk{background:var(--good);border-color:var(--good);color:#fff}
+.opt.wrong{border-color:var(--crit);background:var(--crit-bg)}
+.opt.wrong .mk{background:var(--crit);border-color:var(--crit);color:#fff}
+.opt:disabled{cursor:default}
+.exp{margin-top:14px;border-radius:12px;padding:13px 14px;font-size:13.5px;line-height:1.55;border:1px solid var(--border)}
+.exp.ok{background:var(--good-bg);border-color:var(--good)}
+.exp.no{background:var(--crit-bg);border-color:var(--crit)}
+.exp .eh{font-weight:700;font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.exp.ok .eh{color:var(--good)}.exp.no .eh{color:var(--crit)}
+.qbtn{width:100%;border:none;border-radius:13px;background:var(--accent);color:#fff;font-family:"Sora",sans-serif;font-weight:600;font-size:15px;padding:15px;margin-top:16px;box-shadow:var(--shadow)}
+.qbtn:disabled{opacity:.4}
+.qbtn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--border)}
+
+/* Quiz summary */
+.res-ring{width:150px;height:150px;margin:8px auto 4px;position:relative}
+.res-ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.res-ring .num .p{font-family:"Sora",sans-serif;font-weight:700;font-size:38px;line-height:1}
+.res-ring .num .s{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.res-verdict{text-align:center;font-family:"Sora",sans-serif;font-weight:600;font-size:16px;margin:6px 0 2px}
+.res-sub{text-align:center;color:var(--ink-soft);font-size:13px;margin-bottom:18px}
+
+/* Stats */
+.stat-hero{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:var(--shadow);text-align:center;margin-bottom:16px}
+.stat-hero .big{font-family:"Sora",sans-serif;font-weight:700;font-size:52px;line-height:1;letter-spacing:-.02em}
+.stat-hero .verdict{font-weight:600;font-size:15px;margin-top:6px}
+.stat-hero .note{color:var(--ink-soft);font-size:12.5px;margin-top:4px}
+.mini-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:18px}
+.mini{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:13px 10px;text-align:center;box-shadow:var(--shadow)}
+.mini .mv{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:20px}
+.mini .ml{font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;line-height:1.2}
+.sect-t{font-family:"Sora",sans-serif;font-weight:600;font-size:14px;margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.mbar{margin-bottom:11px}
+.mbar .mbh{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.mbar .mbn{font-size:13px;font-weight:500;flex:1}
+.mbar .mbv{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600}
+.mbar .track{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.mbar .track>div{height:100%;border-radius:99px;transition:width .5s}
+.focus-card{background:var(--accent-soft);border:1px solid var(--accent);border-radius:14px;padding:15px;margin-bottom:16px}
+.focus-card .fl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent-ink);display:flex;align-items:center;gap:6px}
+.focus-card .ft{font-family:"Sora",sans-serif;font-weight:600;font-size:17px;margin:5px 0 3px}
+.focus-card .fd{font-size:13px;color:var(--ink)}
+.datebox{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.datebox label{font-size:12px;color:var(--ink-soft);display:block;margin-bottom:7px;font-weight:500}
+.datebox input{width:100%;font-family:"IBM Plex Mono",monospace;font-size:15px;padding:11px;border-radius:10px;border:1px solid var(--border-strong);background:var(--bg);color:var(--ink)}
+.linkrow{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.linkrow a{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;text-decoration:none;color:var(--ink);font-size:13.5px;font-weight:500;box-shadow:var(--shadow)}
+.linkrow a .ar{margin-left:auto;color:var(--ink-soft)}
+.reset{width:100%;border:1px solid var(--crit);background:transparent;color:var(--crit);border-radius:11px;padding:12px;font-size:13px;font-weight:600;margin-top:4px}
+.empty{text-align:center;color:var(--ink-soft);font-size:13px;padding:26px 10px;border:1px dashed var(--border-strong);border-radius:12px}
+
+/* Tab bar */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;padding:8px 8px calc(8px + env(safe-area-inset-bottom));z-index:30}
+.tab{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;color:var(--ink-soft)}
+.tab svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8}
+.tab .tl{font-size:10px;font-weight:600;letter-spacing:.01em}
+.tab.on{color:var(--accent)}
+.tab .badge-dot{position:absolute;top:3px;right:calc(50% - 16px);width:7px;height:7px;border-radius:99px;background:var(--accent)}
+.tab{position:relative}
+</style>
+
+<div class="app">
+  <header class="hdr">
+    <div class="hdr-top">
+      <div class="wordmark">Security Specialty <span class="code">Sprint</span></div>
+      <div class="countdown" id="countdown"><b>Day 1</b><br>of 20</div>
+    </div>
+    <div class="readbar"><div id="readfill" style="width:0%"></div></div>
+    <div class="readrow"><span class="lbl">Exam readiness</span><span class="val" id="readval">0%</span></div>
+  </header>
+
+  <main class="views">
+    <!-- PLAN -->
+    <section class="view on" id="v-plan">
+      <h2 class="vh">20-Day Sprint</h2>
+      <p class="vsub">Weighted by exam domain. Check off tasks as you go — your progress feeds the readiness score above.</p>
+      <div id="plan-body"></div>
+    </section>
+
+    <!-- CARDS -->
+    <section class="view" id="v-cards">
+      <h2 class="vh">Flashcards</h2>
+      <p class="vsub">Tap the card to flip. Mark <b>Know it</b> or <b>Review</b> — reviewing resurfaces cards you're shaky on. Great for the train.</p>
+      <div class="chips" id="card-chips"></div>
+      <div class="fc-ctr" id="fc-ctr">Card 1</div>
+      <div class="fc-wrap"><div class="fc" id="fc" role="button" tabindex="0" aria-label="Flashcard, tap to flip">
+        <div class="fc-face fc-front">
+          <div style="display:flex;align-items:center"><span class="fc-tag" id="fc-tag-f"></span><span class="fc-side">FRONT</span></div>
+          <div class="fc-q" id="fc-q"></div>
+          <div class="fc-hint">tap to reveal answer</div>
+        </div>
+        <div class="fc-face fc-back">
+          <div style="display:flex;align-items:center"><span class="fc-tag" id="fc-tag-b"></span><span class="fc-side">BACK</span></div>
+          <div class="fc-a" id="fc-a"></div>
+          <div class="fc-hint">tap to flip back</div>
+        </div>
+      </div></div>
+      <div class="fc-nav">
+        <button class="rev" id="btn-rev">↻ Review</button>
+        <button class="know" id="btn-know">✓ Know it</button>
+      </div>
+      <div class="fc-mini">
+        <button id="btn-prev">‹ Prev</button>
+        <button id="btn-shuffle">⤮ Shuffle</button>
+        <button id="btn-next">Next ›</button>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="view" id="v-quiz">
+      <div id="quiz-menu">
+        <h2 class="vh">Practice Quiz</h2>
+        <p class="vsub">Scenario questions, exam-style. Your accuracy is tracked per domain so you can see exactly where you're weak.</p>
+        <div class="mode-grid">
+          <button class="mode wide" data-mode="smart">
+            <div class="mt">🎯 Smart Mix <span class="acc" id="acc-smart"></span></div>
+            <div class="md">15 questions weighted toward your weakest &amp; untested domains.</div>
+          </button>
+          <button class="mode wide" data-mode="exam">
+            <div class="mt">📝 Full Practice Set <span class="acc" id="acc-exam"></span></div>
+            <div class="md">25 mixed questions, domain-weighted like the real 65-question exam.</div>
+          </button>
+        </div>
+        <div class="sect-t">By domain</div>
+        <div class="dom-list" id="dom-list"></div>
+      </div>
+      <div id="quiz-run" style="display:none"></div>
+    </section>
+
+    <!-- STATS -->
+    <section class="view" id="v-stats">
+      <h2 class="vh">Your Readiness</h2>
+      <p class="vsub">Pass mark is 750/1000 (~75%). Aim for 80%+ on practice before exam day.</p>
+      <div class="stat-hero">
+        <div class="big" id="s-big">0%</div>
+        <div class="verdict" id="s-verdict">Just getting started</div>
+        <div class="note" id="s-note">Complete plan tasks, quizzes and cards to build your score.</div>
+      </div>
+      <div class="mini-grid">
+        <div class="mini"><div class="mv" id="s-quiz">—</div><div class="ml">Quiz accuracy</div></div>
+        <div class="mini"><div class="mv" id="s-days">0/20</div><div class="ml">Plan days</div></div>
+        <div class="mini"><div class="mv" id="s-cards">0</div><div class="ml">Cards known</div></div>
+      </div>
+      <div id="focus-slot"></div>
+      <div class="sect-t">Mastery by domain <span style="font-weight:400;color:var(--ink-soft);font-size:12px">(quiz accuracy)</span></div>
+      <div id="mastery"></div>
+      <div class="sect-t">Exam date</div>
+      <div class="datebox"><label for="examdate">Set your exam date for a live countdown</label><input type="date" id="examdate"></div>
+      <div class="sect-t">Deep reference</div>
+      <div class="linkrow">
+        <a href="https://app.notion.com/p/3eb50b6a4e36813c9329f1298fbdc613" target="_blank" rel="noopener">📚 Notion study guide (all 6 domains)<span class="ar">›</span></a>
+      </div>
+      <button class="reset" id="btn-reset">Reset all progress</button>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab on" data-tab="plan"><svg viewBox="0 0 24 24"><path d="M8 2v3M16 2v3M3.5 9h17M4 5.5h16a1 1 0 011 1V20a1 1 0 01-1 1H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg><span class="tl">Plan</span></button>
+    <button class="tab" data-tab="cards"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M7 3h10M5.5 4.5h13"/></svg><span class="tl">Cards</span></button>
+    <button class="tab" data-tab="quiz"><svg viewBox="0 0 24 24"><path d="M9.5 9a2.5 2.5 0 115 0c0 1.5-1.2 2-2.5 3v1.5"/><circle cx="12" cy="18" r=".6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="9.5"/></svg><span class="tl">Quiz</span></button>
+    <button class="tab" data-tab="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="tl">Stats</span></button>
+  </nav>
+</div>
+
+<script>
+/* ---------- Domain meta ---------- */
+const DOMAINS={
+  d1:{n:"Detection",w:16,c:"var(--d1)"},
+  d2:{n:"Incident Response",w:14,c:"var(--d2)"},
+  d3:{n:"Infrastructure Security",w:18,c:"var(--d3)"},
+  d4:{n:"Identity & Access (IAM)",w:20,c:"var(--d4)"},
+  d5:{n:"Data Protection",w:18,c:"var(--d5)"},
+  d6:{n:"Foundations & Governance",w:14,c:"var(--d6)"}
+};
+const DORDER=["d4","d3","d5","d1","d2","d6"];
+
+/* ---------- 20-day plan ---------- */
+const PLAN=[
+ {ph:"Phase 1 · Learn the domains"},
+ {d:1,dom:"d4",t:"IAM foundations",tasks:["Read Domain 4: policy evaluation order + the 5 policy types","Flashcards: filter to IAM, do 8+","Quiz: IAM domain, 10 questions"]},
+ {d:2,dom:"d4",t:"Identities & federation",tasks:["Read Domain 4: STS, Cognito (User vs Identity Pools), IAM Identity Center, Directory Service","Flashcards: IAM set","Quiz: IAM again — aim to beat yesterday"]},
+ {d:3,dom:"d4",t:"IAM applied",tasks:["Read Domain 4: S3 access control, IMDSv2, ABAC vs RBAC, Verified Permissions","Quiz: IAM — target 75%+","Re-review any card you marked Review"]},
+ {d:2.5,dom:"d3",t:"",skip:true},
+ {d:4,dom:"d3",t:"VPC networking core",tasks:["Read Domain 3: endpoints, PrivateLink, peering, SG vs NACL","Flashcards: Infrastructure set","Quiz: Infrastructure, 8 questions"]},
+ {d:5,dom:"d3",t:"Edge protection",tasks:["Read Domain 3: CloudFront, WAF, Shield, Firewall Manager, Network Firewall, Verified Access","Flashcards: Infrastructure","Note the WAF vs Shield vs Firewall Manager distinction"]},
+ {d:6,dom:"d3",t:"Hybrid & compute security",tasks:["Read Domain 3: VPN, Direct Connect, MACsec, Inspector, Image Builder, DNSSEC","Quiz: Infrastructure — target 70%+","Cards: mark weak ones Review"]},
+ {d:7,dom:"d5",t:"Encryption & KMS basics",tasks:["Read Domain 5: encryption types, KMS key types, envelope encryption","Flashcards: Data Protection set","Understand GenerateDataKey vs Encrypt (4KB limit)"]},
+ {d:8,dom:"d5",t:"KMS deep dive",tasks:["Read Domain 5: rotation, deletion, grants, key policies, imported vs generated material, XKS, CloudHSM","Flashcards: Data Protection","Quiz: Data Protection, 8 questions"]},
+ {d:9,dom:"d5",t:"Data controls",tasks:["Read Domain 5: SSE variants, Secrets Manager, RDS, ELB/ACM, backup, data masking, inter-resource encryption","Quiz: Data Protection — target 70%+","Review marked cards"]},
+ {d:10,dom:"d1",t:"Threat detection",tasks:["Read Domain 1: GuardDuty, Security Hub, Detective vs Inspector","Flashcards: Detection set","Quiz: Detection, 8 questions"]},
+ {d:11,dom:"d1",t:"Logging & monitoring",tasks:["Read Domain 1: CloudTrail, CloudWatch, VPC Flow Logs troubleshooting, Athena, Security Lake, EventBridge","Quiz: Detection — target 70%+","Memorise the Flow Logs SG/NACL troubleshooting rule"]},
+ {d:12,dom:"d2",t:"Incident response playbooks",tasks:["Read Domain 2: compromise runbooks (EC2, keys, credentials, account)","Flashcards: Incident Response set","Quiz: Incident Response, 8 questions"]},
+ {d:13,dom:"d2",t:"IR automation",tasks:["Read Domain 2: SSM, Automated Forensics Orchestrator, FIS, Resilience Hub, Step Functions","Quiz: Incident Response — target 70%+","Cards: review the whole IR set once"]},
+ {d:14,dom:"d6",t:"Multi-account governance",tasks:["Read Domain 6: Organizations, SCP/RCP, Control Tower, Config","Flashcards: Governance set","Quiz: Governance, 8 questions"]},
+ {d:15,dom:"d6",t:"IaC & compliance",tasks:["Read Domain 6: CloudFormation, Audit Manager vs Artifact vs Well-Architected, ECR, Lambda, Glue","Quiz: Governance — target 70%+","You've now covered all 6 domains ✅"]},
+ {ph:"Phase 2 · Practice & find weak spots"},
+ {d:16,dom:"mix",t:"First full practice set",tasks:["Quiz: Full Practice Set (25 Q)","Open Stats — note your 2 weakest domains","Re-read the Notion cheat sheet for each wrong answer"]},
+ {d:17,dom:"mix",t:"Drill weak domains",tasks:["Quiz: Smart Mix (targets your weak domains)","Re-read the 2 weakest domain pages in full","Flashcards: filter to each weak domain, clear the Review pile"]},
+ {d:18,dom:"mix",t:"Second full practice set",tasks:["Quiz: Full Practice Set again — compare to Day 16","Review every wrong answer's explanation","Check Stats: is every domain 70%+ now?"]},
+ {d:19,dom:"mix",t:"Final weak-spot pass",tasks:["Quiz: Smart Mix once more","Flashcards: review ALL cards still marked Review","Skim the exam-day strategy on the Notion index page"]},
+ {ph:"Phase 3 · Exam day"},
+ {d:20,dom:"mix",t:"Light review & rest",tasks:["Read all 6 domain cheat-sheet callouts — no cramming new topics","Confirm exam logistics: ID, test setup, timing (170 min)","Rest well. You've got this 🛡️"]}
+].filter(x=>!x.skip);
+
+/* ---------- Flashcards ---------- */
+const CARDS=[
+ // Detection d1
+ {d:"d1",q:"What does Amazon GuardDuty analyze by default, with no setup?",a:"<b>CloudTrail management events, VPC Flow Logs, and Route 53 DNS query logs.</b> It's AI/ML threat detection — one click, no agents. Optional protection plans (S3, EKS, Malware, RDS, Lambda, Runtime) cost extra."},
+ {d:"d1",q:"GuardDuty only generates DNS-based findings under what condition?",a:"Only when you use the <b>default VPC DNS resolver</b>. Custom resolvers produce no DNS findings."},
+ {d:"d1",q:"If GuardDuty is suspended or disabled, what happens to findings during that gap?",a:"<b>No findings are generated at all</b> — there's no backfill for the gap once re-enabled."},
+ {d:"d1",q:"What must be enabled before AWS Security Hub will work?",a:"<b>AWS Config.</b> Classic 'why isn't Security Hub showing findings' trap. Security Hub aggregates findings in ASFF format and auto-deletes them after 90 days."},
+ {d:"d1",q:"GuardDuty finds it, Security Hub aggregates it — which service investigates root cause with a graph?",a:"<b>Amazon Detective.</b> Builds a graph model from VPC Flow Logs, CloudTrail, and GuardDuty findings to trace 'how did this happen / what else did it touch'."},
+ {d:"d1",q:"CloudTrail vs CloudWatch — one-line difference?",a:"<b>CloudTrail</b> = who did what (API call audit trail). <b>CloudWatch</b> = performance metrics, logs, and alarms. Config = resource state over time."},
+ {d:"d1",q:"Are CloudTrail data events logged by default?",a:"<b>No.</b> Management events are on by default; data events (e.g. S3 object-level GetObject, Lambda invokes) are off — high volume, must be explicitly enabled."},
+ {d:"d1",q:"CloudTrail Event history retention vs long-term retention?",a:"Console <b>Event history = 90 days</b>. For longer: send to S3 + query with Athena, or use <b>CloudTrail Lake</b> (up to 10 years, immutable, SQL-queryable)."},
+ {d:"d1",q:"VPC Flow Log shows Inbound ACCEPT but the response is REJECT. Which control is to blame?",a:"The <b>NACL</b>. Security Groups are stateful, so a SG never blocks its own return traffic — a blocked return means the stateless NACL is missing the ephemeral-port rule."},
+ {d:"d1",q:"How does CloudTrail prove a log file wasn't tampered with?",a:"<b>Log File Integrity Validation</b> — hourly digest files with SHA-256 hashes stored alongside the logs in S3."},
+ {d:"d1",q:"Which service finds and classifies PII/sensitive data in S3?",a:"<b>Amazon Macie</b> — ML + pattern matching for sensitive-data discovery in S3."},
+ {d:"d1",q:"What is Amazon Security Lake and what format does it normalize to?",a:"A centralized <b>security data lake</b> in your own S3, normalizing logs from AWS + 3rd-party sources into the open <b>OCSF</b> schema so every source speaks one language."},
+ {d:"d1",q:"CloudWatch Logs: real-time processing vs after-the-fact querying?",a:"<b>Subscription filters</b> = real-time stream to Kinesis/Firehose/Lambda. <b>Logs Insights</b> = a query engine you run on demand, NOT real-time."},
+ {d:"d1",q:"What's the 'glue' service in nearly every automated security-response architecture?",a:"<b>Amazon EventBridge</b> — routes a GuardDuty/Config finding to SNS (notify), Lambda (remediate), and more."},
+ {d:"d1",q:"Serverless SQL over data in S3 — which service, and a key cost tip?",a:"<b>Athena</b> ($5/TB scanned). Cut cost with columnar formats (Parquet/ORC), compression, and partitioning."},
+ // Incident Response d2
+ {d:"d2",q:"The universal incident-response order the exam expects?",a:"<b>Identify → Isolate → Preserve evidence → Investigate → Remediate/Rotate → Review.</b> Isolation always comes before deep investigation."},
+ {d:"d2",q:"First isolation step for a compromised EC2 instance?",a:"Replace its <b>Security Group</b> with one that allows no traffic, then detach from ASG, deregister from ELB, and snapshot EBS for analysis. Enable termination protection."},
+ {d:"d2",q:"How do you invalidate already-issued temporary credentials for a compromised IAM role?",a:"Attach a policy that <b>denies all actions for sessions issued before a timestamp</b> (STS date condition). You can't 'unissue' a token; this forces re-auth. Doesn't affect later sessions."},
+ {d:"d2",q:"Capture memory / run commands on a suspect instance without SSH — how?",a:"<b>SSM Run Command.</b> No inbound port 22 needed; integrated with IAM + CloudTrail."},
+ {d:"d2",q:"Which AWS solution fully automates EC2 forensics off a GuardDuty finding?",a:"<b>Automated Forensics Orchestrator for Amazon EC2</b> — isolates, snapshots EBS + memory, and stores artifacts in a dedicated forensics account, orchestrated by Step Functions."},
+ {d:"d2",q:"How do you test whether your monitoring & IR automation actually fires?",a:"<b>AWS Fault Injection Service (FIS)</b> — deliberately injects failures (kill instance, throttle API, add latency). Pair with <b>Resilience Hub</b> to score RTO/RPO."},
+ {d:"d2",q:"You lost the EC2 key pair on a running Linux Nitro instance with no network. Fastest recovery?",a:"<b>EC2 Serial Console</b> (Nitro-only, works without networking; must be enabled at account level). Other options: SSM AWSSupport-ResetAccess, User Data, Instance Connect, EBS volume swap."},
+ {d:"d2",q:"Removing an EC2 key pair in the console — does it remove it from the instance?",a:"<b>No.</b> The public key stays in <code>~/.ssh/authorized_keys</code> on the root volume. To remediate an exposed key you must edit that file, then add a new key pair."},
+ {d:"d2",q:"Compromised RDS instance — the two 'going forward' hardening recommendations?",a:"Use <b>Secrets Manager</b> to rotate the DB password, and <b>IAM database authentication</b> to remove passwords entirely."},
+ {d:"d2",q:"Orchestrate a multi-step remediation (isolate → snapshot → notify → tag) — which service?",a:"<b>AWS Step Functions</b> — a state machine, cleaner than one giant Lambda."},
+ // Infrastructure d3
+ {d:"d3",q:"Gateway endpoint vs Interface endpoint?",a:"<b>Gateway</b> = S3 & DynamoDB only, via route-table entry, free. <b>Interface</b> = everything else, an ENI with a private IP + Security Group, reachable from Direct Connect/VPN."},
+ {d:"d3",q:"Security Group vs NACL — the four key contrasts?",a:"SG: instance-level, <b>stateful</b>, allow-only, all rules evaluated. NACL: subnet-level, <b>stateless</b>, allow+deny, numbered first-match. Kill a live connection immediately → NACL deny (SG changes don't drop tracked connections)."},
+ {d:"d3",q:"Is VPC peering transitive?",a:"<b>No.</b> A↔B and B↔C does NOT let A reach C. CIDRs must not overlap; update route tables on both sides. Need transitive/hub-spoke → Transit Gateway."},
+ {d:"d3",q:"Expose your own service to thousands of consumer VPCs privately — which service?",a:"<b>AWS PrivateLink</b> (needs an NLB + ENI). No peering, IGW, NAT, or route tables required."},
+ {d:"d3",q:"WAF vs Shield vs Firewall Manager — one line each?",a:"<b>WAF</b> = L7 HTTP filtering (SQLi, XSS, rate limits). <b>Shield</b> = DDoS (L3/4, + L7 with Advanced). <b>Firewall Manager</b> = org-wide central rollout of WAF/Shield/SG/Network Firewall/DNS Firewall policies."},
+ {d:"d3",q:"Inspect ALL VPC traffic (not just HTTP) with IDS/IPS-style rules — which service?",a:"<b>AWS Network Firewall</b> — stateful, VPC-level, Suricata-compatible rules. WAF only sees HTTP/S."},
+ {d:"d3",q:"Zero-Trust access to internal apps without a VPN — which service?",a:"<b>AWS Verified Access</b> — evaluates identity + device posture on every request, using Cedar policies (same engine as Verified Permissions)."},
+ {d:"d3",q:"Amazon Inspector vs GuardDuty?",a:"<b>Inspector</b> = finds known CVEs/vulnerabilities (EC2, ECR images, Lambda) before exploitation. <b>GuardDuty</b> = detects active threats/behavior at runtime."},
+ {d:"d3",q:"Restrict direct access to an ALB so only CloudFront can reach it — how?",a:"CloudFront adds a <b>secret custom HTTP header</b>; the ALB is configured to only forward requests carrying that header."},
+ {d:"d3",q:"Secure an S3 origin behind CloudFront — modern vs legacy mechanism?",a:"<b>OAC</b> (Origin Access Control, modern) — natively supports SSE-KMS via SigV4. OAI (legacy) needs Lambda@Edge for SSE-KMS."},
+ {d:"d3",q:"Signed URL vs Signed Cookie (CloudFront)?",a:"<b>Signed URL</b> = access to one file. <b>Signed Cookie</b> = access to many files with one cookie. Prefer a trusted key group over a root CloudFront key pair."},
+ {d:"d3",q:"Layer-2 line-rate encryption over a Direct Connect link — what's it called?",a:"<b>MACsec</b> — hardware encryption on DX dedicated connections, no IPsec VPN overhead. (DX is private but NOT encrypted by default.)"},
+ {d:"d3",q:"Rate-based WAF rule — typical use?",a:"Block an IP after e.g. <b>100 requests in 5 minutes</b>. Geo-match rule = allow/block by country."},
+ {d:"d3",q:"DNSSEC on Route 53 — the two keys?",a:"<b>KSK</b> (Key-Signing Key, customer-managed, backed by an asymmetric KMS CMK) and <b>ZSK</b> (Zone-Signing Key, AWS-managed). Public hosted zones only."},
+ // IAM d4
+ {d:"d4",q:"The single rule that overrides everything in IAM evaluation?",a:"An <b>explicit DENY anywhere</b> (SCP, identity, resource, boundary, session policy) blocks the request, regardless of any Allows."},
+ {d:"d4",q:"Which policy types are 'ceilings' that only restrict, never grant?",a:"<b>Permission Boundaries, SCPs/RCPs, and Session Policies</b> — all intersections. They cap permissions; they never grant anything on their own."},
+ {d:"d4",q:"Cross-account: identity policy in Account A + resource policy in Account B. What's needed for access?",a:"An Allow in <b>either</b> account (OR logic) AND no explicit Deny in either. Same-account resource access is also OR; a cross-account Lambda Function URL with IAM auth needs BOTH."},
+ {d:"d4",q:"Do SCPs apply to the management account?",a:"<b>No.</b> SCPs restrict every account in the org EXCEPT the management account. They're deny-by-default: need an explicit Allow chain from root down."},
+ {d:"d4",q:"ABAC in one sentence?",a:"Grant access when the <b>principal's tag matches the resource's tag</b> (a Condition like <code>aws:PrincipalTag/project == aws:ResourceTag/project</code>). Scales without writing new policies per team."},
+ {d:"d4",q:"STS AssumeRoleWithWebIdentity — what does AWS recommend instead?",a:"<b>Amazon Cognito</b> for web/mobile identity federation. STS tokens last up to 1 hour."},
+ {d:"d4",q:"What does the External ID on AssumeRole prevent?",a:"The <b>Confused Deputy problem</b> — stops a 3rd party from being tricked into letting an unintended customer access your resources through them."},
+ {d:"d4",q:"Cognito User Pools vs Identity Pools?",a:"<b>User Pools</b> = managed user directory (sign-up/in, MFA, issues a JWT). <b>Identity Pools</b> = exchange an identity for temporary AWS credentials (via STS)."},
+ {d:"d4",q:"Workforce SSO across all org accounts — which service?",a:"<b>AWS IAM Identity Center</b> (successor to AWS SSO). Uses permission sets; customer-managed policies in a permission set must be pre-created with the same name in every target account."},
+ {d:"d4",q:"How do you enforce IMDSv2 on EC2?",a:"Require the <code>ec2:RoleDelivery = 2.0</code> context key via a policy on the instance role, an S3 bucket policy, or an SCP. IMDSv2 uses a session token (PUT then GET) to mitigate SSRF."},
+ {d:"d4",q:"You locked yourself out with a bad S3 bucket policy. Fix?",a:"Delete the bucket policy using the <b>root account</b> — explicit Deny statements never apply to the root user."},
+ {d:"d4",q:"IAM Access Analyzer vs IAM Policy Simulator?",a:"<b>Access Analyzer</b> = finds resources shared outside your zone of trust + over-broad access; can generate least-privilege policy from CloudTrail. <b>Policy Simulator</b> = test/debug what a policy would allow or deny."},
+ {d:"d4",q:"Amazon Verified Permissions vs IAM — what's the difference?",a:"IAM controls access to <b>AWS resources</b>. Verified Permissions (Cedar) controls authorization <b>inside your own application</b> ('can User A edit Document B')."},
+ {d:"d4",q:"Use IAM roles for workloads OUTSIDE AWS (on-prem, other clouds) — which feature?",a:"<b>IAM Roles Anywhere</b> — temporary credentials via X.509 certificates from a Private CA, no long-lived keys."},
+ {d:"d4",q:"AD Connector vs AWS Managed Microsoft AD?",a:"<b>AD Connector</b> = proxy to on-prem AD, no caching, no trusts, users stay on-prem. <b>Managed Microsoft AD</b> = real AD in your VPC, supports trusts, domain join, SQL Server."},
+ {d:"d4",q:"MFA Delete on S3 — what does it require and protect?",a:"Requires versioning enabled; only the root/bucket owner can toggle it. Required to permanently delete an object version or suspend versioning."},
+ // Data Protection d5
+ {d:"d5",q:"KMS vs CloudHSM — the core distinction?",a:"<b>KMS</b> = AWS manages the crypto software, multi-tenant, IAM-based, free tier. <b>CloudHSM</b> = dedicated single-tenant hardware, you manage keys/users entirely, no free tier, FIPS 140-2 L3."},
+ {d:"d5",q:"Why and when do you use envelope encryption?",a:"KMS Encrypt maxes at <b>4KB</b>. For larger data use <b>GenerateDataKey</b>: get a plaintext data key + an encrypted copy, encrypt locally, store the encrypted key with the ciphertext."},
+ {d:"d5",q:"Automatic KMS key rotation — what changes and what stays the same?",a:"The <b>backing key material</b> rotates; the <b>Key ID stays the same</b>, so old ciphertext still decrypts with zero re-encryption. Only customer-managed symmetric keys; asymmetric/imported must rotate manually (new Key ID → use an alias)."},
+ {d:"d5",q:"Imported key material (BYOK) vs AWS-generated — key differences?",a:"Imported: <b>no automatic rotation</b>, YOU own durability, can set expiration, NOT usable with a Custom Key Store. AWS-generated: auto-rotation supported, AWS owns durability."},
+ {d:"d5",q:"Custom Key Store vs External Key Store (XKS)?",a:"<b>Custom Key Store</b> = key material in a CloudHSM cluster (still inside AWS). <b>XKS</b> = key material never leaves your OWN external key manager, not even into AWS — for strict sovereignty."},
+ {d:"d5",q:"SSE-S3 vs SSE-KMS vs SSE-C?",a:"<b>SSE-S3</b> = AWS-owned key, AES-256, default. <b>SSE-KMS</b> = your KMS key, auditable via CloudTrail, counts against KMS quotas. <b>SSE-C</b> = you supply the key per request, HTTPS mandatory, S3 never stores it."},
+ {d:"d5",q:"How do S3 Bucket Keys help with SSE-KMS?",a:"They cut KMS API calls (and cost, and CloudTrail volume) by up to <b>99%</b> — S3 derives per-object keys from a short-lived bucket-level data key."},
+ {d:"d5",q:"Encrypt an existing UNencrypted RDS DB — how?",a:"You can't encrypt in place. <b>Snapshot it, then restore the snapshot as encrypted.</b> Copying a snapshot alone won't encrypt it; an unencrypted primary can't have encrypted read replicas."},
+ {d:"d5",q:"S3 Object Lock: Compliance vs Governance mode?",a:"<b>Compliance</b> = nobody, not even root, can delete/overwrite/shorten retention. <b>Governance</b> = special-permission users can override. Legal Hold = indefinite, independent of retention. Requires versioning."},
+ {d:"d5",q:"Auto-redact SSNs/credit cards inside logs while keeping the rest readable — what's used?",a:"<b>CloudWatch Logs data protection policies</b> (and SNS message data protection) — data <b>masking</b>, not encryption. Unmasking needs a separate permission."},
+ {d:"d5",q:"Secrets Manager vs SSM Parameter Store?",a:"<b>Secrets Manager</b> = built-in automatic rotation (RDS/Aurora/Redshift via Lambda), costs more. <b>Parameter Store</b> = general config + small secrets, cheaper, no native rotation."},
+ {d:"d5",q:"Encrypt traffic between the worker nodes of a distributed service — what's the concept?",a:"<b>Inter-resource / inter-node encryption in transit</b> — e.g. EMR node-to-node, EKS pod-to-pod, SageMaker distributed training, and Nitro (EC2↔EBS, in hardware by default)."},
+ {d:"d5",q:"KMS Grants — what are they for?",a:"Temporary, API-only permissions for specific operations on one key. How services like EBS use a key without you editing the key policy. Must be deleted manually (don't auto-expire)."},
+ {d:"d5",q:"ACM is regional — implication for a multi-region app?",a:"You need a certificate issued <b>in each region</b>; certs can't be copied across regions. Edge-optimized API Gateway / CloudFront certs must be in <b>us-east-1</b>."},
+ {d:"d5",q:"ALB vs NLB vs GWLB — layer and use?",a:"<b>ALB</b> L7 (HTTP routing). <b>NLB</b> L4 (extreme perf, static IP, mTLS via TCP passthrough). <b>GWLB</b> L3 (route to 3rd-party firewall appliances)."},
+ // Governance d6
+ {d:"d6",q:"SCP vs RCP?",a:"<b>SCP</b> restricts what principals in member accounts can do. <b>RCP</b> restricts what actions can be taken ON resources org-wide (e.g. force encryption on every S3 bucket). Both are deny guardrails."},
+ {d:"d6",q:"Control Tower guardrails: preventive vs detective?",a:"<b>Preventive</b> = SCPs (block the action). <b>Detective</b> = AWS Config rules (flag it after the fact). Control Tower runs on top of Organizations."},
+ {d:"d6",q:"AWS Config vs CloudTrail?",a:"<b>Config</b> = resource configuration + compliance state over time ('is this resource compliant, and what changed'). <b>CloudTrail</b> = who called which API. Config Rules detect but do NOT prevent."},
+ {d:"d6",q:"Audit Manager vs AWS Artifact vs Well-Architected Tool?",a:"<b>Audit Manager</b> = collects evidence for YOUR compliance against a framework. <b>Artifact</b> = downloads AWS's OWN compliance reports (SOC, PCI). <b>Well-Architected Tool</b> = architecture self-review against the pillars."},
+ {d:"d6",q:"CloudFormation Service Role — what does it enable?",a:"CloudFormation creates/updates/deletes resources <b>on the user's behalf</b>, so the human doesn't need those permissions directly. Requires <code>iam:PassRole</code>. Enables least privilege for people."},
+ {d:"d6",q:"CloudFormation Drift Detection — what counts as drift?",a:"Real-world config that diverged from the template (e.g. someone hand-edited a SG in the console). Changes made <b>through CloudFormation itself</b> are never drift."},
+ {d:"d6",q:"Declarative policies vs SCPs?",a:"<b>Declarative policies</b> enforce a desired configuration STATE org-wide (e.g. block public EC2 IPs everywhere) baked into service behavior — no Config rules needed. SCPs restrict actions."},
+ {d:"d6",q:"Emergency access when IAM Identity Center / SSO is down — what's the pattern?",a:"A documented <b>break-glass procedure</b>: a tightly controlled, vaulted root/emergency credential with heavy logging and alerting on any use."},
+ {d:"d6",q:"Share existing resources cross-account vs share approved provisioning templates?",a:"<b>AWS RAM</b> shares existing resources (subnets, Transit Gateway). <b>Service Catalog</b> shares approved templates users self-serve deploy (powers Control Tower's Account Factory)."},
+ {d:"d6",q:"Validate IaC templates for security BEFORE deployment — which tools?",a:"<b>CloudFormation Guard</b> (policy-as-code, custom rules) and <b>cfn-lint</b> (best-practice/syntax). Shift governance left into the pipeline."},
+ {d:"d6",q:"ECR advanced image scanning is powered by which service?",a:"<b>Amazon Inspector</b> — continuous, automated scanning of OS + language-package vulnerabilities. Basic scanning uses the open-source CVE DB on push."},
+ {d:"d6",q:"Lambda execution role vs resource-based policy?",a:"<b>Execution role</b> = what the function can do to other services. <b>Resource-based policy</b> = who/what is allowed to invoke the function. Best practice: one execution role per function."}
+];
+
+/* ---------- Quiz ---------- */
+const QUIZ=[
+ // d1 Detection
+ {d:"d1",q:"A security team needs to detect compromised EC2 instances communicating with known malicious IPs and cryptomining domains, with no software to install on the instances. Which service?",o:["Amazon Inspector","Amazon GuardDuty","AWS Config","Amazon Macie"],c:1,e:"GuardDuty is agentless ML threat detection using CloudTrail, VPC Flow Logs and DNS logs — exactly this use case. Inspector finds CVEs; Config tracks configuration; Macie finds PII."},
+ {d:"d1",q:"Security Hub is enabled but shows no findings from any account. What is the most likely cause?",o:["GuardDuty is not enabled","AWS Config is not enabled","The management account isn't set as administrator","Cross-region aggregation is off"],c:1,e:"Security Hub requires AWS Config to be enabled first — the classic trap. Without Config, its controls can't evaluate."},
+ {d:"d1",q:"An investigator needs to visualize the relationships between an IAM user's API calls across multiple accounts to determine the root cause of an incident. Which service is purpose-built for this?",o:["Amazon Detective","AWS Security Hub","Amazon GuardDuty","AWS CloudTrail Lake"],c:0,e:"Detective builds a graph model for root-cause analysis. GuardDuty detects, Security Hub aggregates, Detective investigates."},
+ {d:"d1",q:"You must retain CloudTrail events for 7 years and run SQL queries over them for compliance. Best approach?",o:["Rely on the 90-day Event history","Enable CloudTrail Insights","Use CloudTrail Lake","Stream to CloudWatch Logs only"],c:2,e:"CloudTrail Lake gives immutable storage up to 10 years with SQL queries. Event history is only 90 days; Insights detects anomalies, not long-term retention."},
+ {d:"d1",q:"A VPC Flow Log shows inbound traffic ACCEPTED but the return traffic REJECTED. Where is the misconfiguration?",o:["The Security Group inbound rules","The Security Group outbound rules","The NACL (missing ephemeral port rule)","The route table"],c:2,e:"SGs are stateful — return traffic is auto-allowed. A rejected return means the stateless NACL lacks the outbound ephemeral-port rule."},
+ {d:"d1",q:"A company needs to centralize security logs from AWS, on-prem, and a third-party firewall into one normalized schema for their SIEM. Which service?",o:["Amazon Athena","Amazon Security Lake","CloudWatch Logs Insights","AWS Config aggregator"],c:1,e:"Security Lake centralizes and normalizes to the open OCSF schema in your own S3, with subscribers like a SIEM."},
+ {d:"d1",q:"You need near-real-time processing of log events the moment they arrive in CloudWatch Logs. Which feature?",o:["CloudWatch Logs Insights","A subscription filter","A metric filter dashboard","Athena federated query"],c:1,e:"Subscription filters stream in real time to Kinesis/Firehose/Lambda. Logs Insights is an on-demand query engine, not real-time."},
+ {d:"d1",q:"Which S3 activity is NOT captured by CloudTrail unless explicitly enabled?",o:["Bucket creation","Bucket policy changes","Object-level GetObject/PutObject","Bucket deletion"],c:2,e:"Object-level (data) events are off by default due to volume; management events like bucket create/delete/policy changes are on by default."},
+ {d:"d1",q:"A team wants to automatically block an IP at the network firewall whenever GuardDuty raises a finding. Which service routes the finding to the remediation Lambda?",o:["Amazon EventBridge","AWS Config","Amazon SNS","AWS Step Functions"],c:0,e:"EventBridge is the event router that triggers Lambda/SNS/etc. from findings — the glue of automated response."},
+ {d:"d1",q:"DNS-based GuardDuty findings are missing for a VPC. What's the likely reason?",o:["S3 Protection is disabled","The VPC uses a custom (non-default) DNS resolver","CloudTrail data events are off","The VPC has no flow logs"],c:1,e:"GuardDuty only inspects DNS queries when the default VPC DNS resolver is used."},
+ // d2 Incident Response
+ {d:"d2",q:"You suspect an EC2 instance is compromised and must preserve evidence while stopping data exfiltration. What is the FIRST containment action?",o:["Terminate the instance","Replace its Security Group with a no-access SG","Take an EBS snapshot","Detach it from the load balancer"],c:1,e:"Isolate first by swapping to a Security Group that blocks traffic — without destroying evidence. Termination would destroy volatile evidence; snapshotting comes after isolation."},
+ {d:"d2",q:"IAM access keys were leaked publicly. Besides rotating them, how do you immediately neutralize any already-issued temporary sessions from the role?",o:["Delete the IAM role","Attach a policy denying all actions for sessions issued before now (STS date condition)","Disable the region","Enable MFA on the role"],c:1,e:"You can't revoke a token directly; attach a deny with an aws:TokenIssueTime/date condition to force re-authentication. It doesn't affect sessions started after."},
+ {d:"d2",q:"Which service fully automates EC2 forensic capture (isolation, EBS + memory snapshots, artifact storage) triggered by a GuardDuty finding?",o:["AWS Config remediation","Automated Forensics Orchestrator for Amazon EC2","AWS Backup","Amazon Detective"],c:1,e:"The Automated Forensics Orchestrator solution automates the whole EC2 forensics pipeline via Step Functions off a GuardDuty finding."},
+ {d:"d2",q:"You need to run a memory-capture script across many suspect instances without opening SSH. Best tool?",o:["EC2 Instance Connect","SSM Run Command","A bastion host","AWS Systems Manager Parameter Store"],c:1,e:"SSM Run Command executes commands at scale with no inbound SSH, fully audited in CloudTrail."},
+ {d:"d2",q:"A security team wants to validate that their automated incident-response alerts actually fire during a real failure. Which service deliberately injects failures to test this?",o:["AWS Resilience Hub","AWS Fault Injection Service","AWS Config","Amazon GuardDuty"],c:1,e:"FIS injects controlled failures (kill instance, throttle API) to test detection/response. Resilience Hub scores resilience against RTO/RPO but doesn't inject faults."},
+ {d:"d2",q:"An EC2 Nitro instance has lost its key pair and has no working network connection. Which recovery method works?",o:["EC2 Instance Connect","EC2 Serial Console","SSH via bastion","Reboot to reset the key"],c:1,e:"EC2 Serial Console works on Nitro instances without networking (must be enabled at account level)."},
+ {d:"d2",q:"After an RDS database compromise, which two 'harden going forward' recommendations does AWS favor? (Choose two.)",o:["Store the password in plaintext user data","Use Secrets Manager to rotate the DB password","Use IAM database authentication","Make the DB publicly accessible"],c:[1,2],multi:true,e:"Secrets Manager rotation + IAM DB authentication remove long-lived static passwords."},
+ {d:"d2",q:"A container in an ECS task is compromised. What's the recommended isolation step?",o:["Delete the ECS cluster","Deny all ingress/egress to the task via security groups","Stop all tasks in the account","Rotate the account root password"],c:1,e:"Isolate the affected task (deny ingress/egress) to contain it while preserving it for analysis."},
+ {d:"d2",q:"You want to chain isolate → snapshot → notify → tag as a single auditable, resumable workflow. Which service?",o:["A single large Lambda","AWS Step Functions","Amazon SQS","AWS Config"],c:1,e:"Step Functions orchestrates multi-step workflows as a state machine — cleaner and more resilient than one monolithic Lambda."},
+ {d:"d2",q:"An exposed EC2 key pair must be remediated on running instances. What's required?",o:["Just delete the key pair in the EC2 console","Edit ~/.ssh/authorized_keys to remove the old public key, then add a new key pair","Reboot the instance","Rotate the IAM role"],c:1,e:"Deleting the key pair in the console does NOT remove the public key from the instance's volume — you must edit authorized_keys directly."},
+ // d3 Infrastructure
+ {d:"d3",q:"A Lambda in a private subnet must reach Secrets Manager without any traffic traversing the public internet. What do you configure?",o:["A NAT Gateway","An Interface VPC endpoint for Secrets Manager","An Internet Gateway","VPC peering"],c:1,e:"An interface endpoint (PrivateLink) keeps the call on the AWS private network. A NAT Gateway would route via the public internet."},
+ {d:"d3",q:"You must immediately drop an active malicious connection to instances in a subnet. Which control acts immediately?",o:["Modify the Security Group","Add a NACL deny rule","Update the route table","Change the IAM policy"],c:1,e:"SG changes don't terminate existing tracked connections; a NACL deny (stateless) blocks traffic immediately."},
+ {d:"d3",q:"A company needs to inspect and filter ALL traffic in a VPC — including non-HTTP protocols — using IDS/IPS-style signatures. Which service?",o:["AWS WAF","AWS Network Firewall","Security Groups","AWS Shield"],c:1,e:"Network Firewall does stateful, VPC-wide inspection with Suricata rules. WAF only inspects HTTP/S."},
+ {d:"d3",q:"Which combination correctly maps the three protection services?",o:["WAF = DDoS, Shield = L7 filtering, Firewall Manager = per-app","WAF = L7 web filtering, Shield = DDoS, Firewall Manager = org-wide central management","WAF = org-wide, Shield = L7, Firewall Manager = DDoS","All three do the same thing"],c:1,e:"WAF filters L7 web traffic, Shield handles DDoS, Firewall Manager centrally deploys WAF/Shield/SG/Network Firewall policies across an Organization."},
+ {d:"d3",q:"A company wants Zero-Trust access to internal apps based on user identity AND device posture, with no VPN. Which service?",o:["AWS Client VPN","AWS Verified Access","AWS Direct Connect","AWS PrivateLink"],c:1,e:"Verified Access grants per-request access based on identity + device posture using Cedar policies — no VPN."},
+ {d:"d3",q:"You need to detect known software vulnerabilities (CVEs) in EC2, container images, and Lambda functions before they're exploited. Which service?",o:["Amazon GuardDuty","Amazon Inspector","Amazon Detective","AWS Config"],c:1,e:"Inspector = vulnerability (CVE) scanning. GuardDuty detects active runtime threats, not known CVEs."},
+ {d:"d3",q:"Requests are hitting an ALB directly, bypassing CloudFront and its WAF. How do you force all traffic through CloudFront?",o:["Make the ALB private only","CloudFront adds a secret custom header; ALB forwards only requests with it","Enable geo restriction on the ALB","Use an NACL on the ALB subnet"],c:1,e:"CloudFront injects a secret custom HTTP header; the ALB rule only forwards requests containing that header."},
+ {d:"d3",q:"An enterprise needs encrypted traffic over a Direct Connect link at line rate without IPsec overhead. What do they use?",o:["A Site-to-Site VPN over DX","MACsec on the DX connection","VPC peering","A Transit Gateway"],c:1,e:"MACsec provides native Layer-2 hardware encryption on DX. (A VPN over DX also encrypts but adds IPsec overhead.)"},
+ {d:"d3",q:"Three VPCs A, B, C are peered A–B and B–C. Can A reach C?",o:["Yes, peering is transitive","No, VPC peering is not transitive","Only if CIDRs overlap","Only with a NAT Gateway"],c:1,e:"Peering is non-transitive. For hub-and-spoke/transitive connectivity use Transit Gateway."},
+ {d:"d3",q:"You must securely expose your SaaS service to thousands of customer VPCs without peering, IGW, or NAT. Which service?",o:["Transit Gateway","AWS PrivateLink (with an NLB)","VPC peering","Direct Connect"],c:1,e:"PrivateLink with an NLB exposes a service privately at massive scale with no peering/IGW/NAT/route-table changes."},
+ // d4 IAM
+ {d:"d4",q:"An IAM user has an identity policy allowing S3, but an SCP on their OU denies S3. What is the result?",o:["Access allowed (identity policy wins)","Access denied (explicit deny always wins)","Depends on resource policy","Allowed only in us-east-1"],c:1,e:"An explicit Deny anywhere — including an SCP — overrides any Allow."},
+ {d:"d4",q:"You want temporary permissions capped so a role can NEVER exceed a defined maximum, even if its policies allow more. Which feature?",o:["A resource-based policy","A permission boundary","An inline policy","A service role"],c:1,e:"A permission boundary is a ceiling (intersection) — it caps maximum permissions and never grants."},
+ {d:"d4",q:"A mobile app needs to authenticate external users (sign-up, sign-in, MFA) and receive a JWT. Which Cognito feature?",o:["Cognito Identity Pool","Cognito User Pool","IAM Identity Center","STS GetSessionToken"],c:1,e:"User Pools are the managed user directory issuing JWTs. Identity Pools then exchange an identity for temporary AWS credentials."},
+ {d:"d4",q:"A third party will access your account via a cross-account role. What must you add to prevent the confused-deputy problem?",o:["An MFA device","An External ID condition on AssumeRole","A permission boundary","A VPC endpoint"],c:1,e:"The External ID ensures the role can only be assumed with an agreed-upon value, preventing a confused deputy."},
+ {d:"d4",q:"You need to scale permissions across many teams without writing a new policy per team, using tags. Which model?",o:["RBAC","ABAC","MFA","SCP"],c:1,e:"ABAC grants access when principal tags match resource tags — one policy scales to new teams/resources."},
+ {d:"d4",q:"A misconfigured bucket policy denies all access, locking everyone out including admins. How do you recover?",o:["Contact AWS Support to reset","Delete the bucket policy as the root user","Add an allow to the SCP","Recreate the bucket"],c:1,e:"Explicit Deny statements do not apply to the root account; root can delete the offending bucket policy."},
+ {d:"d4",q:"On-premises servers need to call AWS APIs using IAM roles with temporary credentials and no long-lived keys. Which feature?",o:["IAM Identity Center","IAM Roles Anywhere","EC2 instance profiles","Access keys with rotation"],c:1,e:"IAM Roles Anywhere issues temporary credentials to non-AWS workloads via X.509 certs from a Private CA."},
+ {d:"d4",q:"An application needs fine-grained authorization like 'can user A edit document B' decided outside app code. Which service?",o:["IAM policies","Amazon Verified Permissions","AWS Organizations SCP","Amazon Cognito User Pool"],c:1,e:"Verified Permissions (Cedar) externalizes application-level authorization. IAM governs AWS resources, not app business logic."},
+ {d:"d4",q:"To meet compliance, EC2 must only use IMDSv2. How can you enforce this broadly?",o:["Delete IMDS entirely on every host","Require ec2:RoleDelivery = 2.0 via an SCP or role policy","Use a NACL","Disable the metadata endpoint in the console per instance"],c:1,e:"Requiring the ec2:RoleDelivery=2.0 context key (via SCP, role, or bucket policy) enforces IMDSv2 at scale."},
+ {d:"d4",q:"Cross-account access: Account A's IAM user has an Allow, Account B's bucket policy has no statement about them and no Deny. Result?",o:["Denied — resource policy must also allow","Allowed — an Allow in either account with no Deny is sufficient","Denied — SCP required","Allowed only with MFA"],c:1,e:"For cross-account resource access, an Allow in EITHER the identity or resource policy suffices, as long as neither has an explicit Deny."},
+ // d5 Data Protection
+ {d:"d5",q:"You must encrypt a 50 MB file with a KMS-managed key, but KMS Encrypt is limited to 4 KB. What do you use?",o:["Call Encrypt in a loop","Envelope encryption via GenerateDataKey","Switch to SSE-S3","Store it unencrypted"],c:1,e:"GenerateDataKey returns a data key to encrypt large data locally (envelope encryption); Encrypt is only for ≤4KB."},
+ {d:"d5",q:"A regulator requires that key material never leave your own on-premises HSM, not even into AWS. Which KMS option?",o:["Custom Key Store (CloudHSM)","External Key Store (XKS)","Imported key material","AWS managed keys"],c:1,e:"XKS keeps key material entirely in your external key manager. A Custom Key Store uses CloudHSM, which is still inside AWS."},
+ {d:"d5",q:"After enabling automatic rotation on a customer-managed symmetric KMS key, what happens to data encrypted before rotation?",o:["It must be re-encrypted manually","It still decrypts — the Key ID is unchanged, only backing material rotates","It becomes unreadable","It's auto-deleted after 90 days"],c:1,e:"Automatic rotation keeps the same Key ID and retains old backing keys, so old ciphertext decrypts with zero re-encryption."},
+ {d:"d5",q:"You need to prove logs cannot be deleted or altered by anyone — not even the root user — for a fixed retention period. Which control?",o:["S3 Object Lock in Governance mode","S3 Object Lock in Compliance mode","S3 versioning only","Bucket policy denying delete"],c:1,e:"Compliance mode makes objects immutable to everyone including root for the retention period. Governance mode allows privileged overrides."},
+ {d:"d5",q:"Developers occasionally log customer SSNs. You want them auto-redacted in CloudWatch Logs while keeping the rest readable. What do you use?",o:["SSE-KMS on the log group","A CloudWatch Logs data protection policy","Glacier Vault Lock","A KMS grant"],c:1,e:"CloudWatch Logs data protection policies mask sensitive data patterns; unmasking requires a separate permission. This is masking, not encryption."},
+ {d:"d5",q:"An unencrypted production RDS instance must become encrypted. What's the supported path?",o:["Enable encryption in place via modify","Snapshot it, then restore the snapshot as encrypted","Copy the snapshot to encrypt it","Encryption isn't possible after launch"],c:1,e:"You can't encrypt in place. Take a snapshot and restore it as encrypted (encryption is set at launch)."},
+ {d:"d5",q:"SSE-KMS on a high-traffic S3 bucket is hitting KMS API quotas. What reduces KMS calls dramatically?",o:["Switch to SSE-C","Enable S3 Bucket Keys","Disable encryption","Use a larger KMS key"],c:1,e:"S3 Bucket Keys cut KMS requests (and cost/CloudTrail volume) by up to 99% by deriving per-object keys from a bucket-level key."},
+ {d:"d5",q:"A workload needs automatic rotation of database credentials with native RDS integration. Which service?",o:["SSM Parameter Store standard","AWS Secrets Manager","KMS","S3"],c:1,e:"Secrets Manager provides built-in automatic rotation for RDS/Aurora/Redshift via Lambda. Parameter Store lacks native rotation."},
+ {d:"d5",q:"Which statement about imported KMS key material (BYOK) is TRUE?",o:["It supports automatic rotation","It cannot be used with a Custom Key Store and you own its durability","AWS backs up the material for you","It rotates the Key ID automatically"],c:1,e:"Imported material has no automatic rotation, can't be used with a Custom Key Store, and you're responsible for its durability."},
+ {d:"d5",q:"An EMR cluster must encrypt traffic between its worker nodes. What is this called on the exam?",o:["Encryption at rest","Inter-node / inter-resource encryption in transit","Envelope encryption","Client-side encryption"],c:1,e:"In-transit encryption between the internal nodes of a distributed service (EMR/EKS/SageMaker/Nitro) is inter-resource encryption in transit."},
+ // d6 Governance
+ {d:"d6",q:"You must force encryption on every S3 bucket across all accounts in an organization, restricting the action on the resource itself. Which policy type?",o:["SCP","RCP (Resource Control Policy)","Permission boundary","IAM identity policy"],c:1,e:"RCPs restrict actions on resources org-wide (e.g. enforce encryption on all S3). SCPs restrict principals' actions."},
+ {d:"d6",q:"Control Tower guardrails come in two forms. Which pairing is correct?",o:["Preventive = Config rules, Detective = SCPs","Preventive = SCPs, Detective = Config rules","Both use only SCPs","Both use only Config"],c:1,e:"Preventive guardrails are SCPs (block the action); detective guardrails are Config rules (flag after the fact)."},
+ {d:"d6",q:"An auditor asks for evidence that your workloads meet PCI DSS controls, collected continuously. Which service?",o:["AWS Artifact","AWS Audit Manager","AWS Config only","AWS Well-Architected Tool"],c:1,e:"Audit Manager continuously collects evidence mapped to a framework (PCI, HIPAA). Artifact only provides AWS's own reports."},
+ {d:"d6",q:"You need AWS's own SOC 2 and PCI compliance reports to share with a customer. Where do you get them?",o:["AWS Audit Manager","AWS Artifact","AWS Config","Trusted Advisor"],c:1,e:"AWS Artifact is the self-service portal for AWS's own compliance reports and agreements."},
+ {d:"d6",q:"A user must be able to deploy a stack of resources they don't personally have permissions to create. How?",o:["Grant them admin","Use a CloudFormation service role (they need iam:PassRole)","Disable IAM checks","Use an SCP allow"],c:1,e:"A CloudFormation service role lets the stack act on the user's behalf; the user needs iam:PassRole but not the resource permissions."},
+ {d:"d6",q:"Which statement about AWS Config Rules is correct?",o:["They prevent non-compliant actions","They detect non-compliance but do not prevent it","They replace CloudTrail","They only work in one region"],c:1,e:"Config Rules detect and flag (and can trigger remediation) but never block the action itself."},
+ {d:"d6",q:"A CloudFormation-managed Security Group was hand-edited in the console. How do you find such divergences?",o:["Enable termination protection","Run Drift Detection","Check CloudTrail Insights","Use a stack policy"],c:1,e:"Drift Detection flags resources whose real state diverged from the template; changes made through CFN itself aren't drift."},
+ {d:"d6",q:"You want to enforce a desired configuration STATE org-wide (e.g. block public EC2 IPs everywhere) without writing Config rules. Which newer org policy type?",o:["SCP","Declarative policy","Tag policy","Session policy"],c:1,e:"Declarative policies enforce a desired service configuration state org-wide, persisting even for new resources, without Config rules."},
+ {d:"d6",q:"What's the difference between AWS RAM and AWS Service Catalog for sharing?",o:["They're identical","RAM shares existing resources; Service Catalog shares approved provisioning templates","RAM is for billing; Service Catalog for logging","Service Catalog shares subnets; RAM shares templates"],c:1,e:"RAM shares existing resources (subnets, TGW); Service Catalog offers approved templates for self-service provisioning."},
+ {d:"d6",q:"Do Service Control Policies (SCPs) restrict the organization's management account?",o:["Yes, all accounts equally","No — SCPs never restrict the management account","Only if MFA is off","Only in us-east-1"],c:1,e:"SCPs apply to every account except the management account, which is why you shouldn't run workloads in it."}
+];
+
+/* ---------- Storage ---------- */
+const KEY="scsc03_v1";
+let S=load();
+window.__getState=()=>S; /* used by the Scriptable launcher to save progress on close */
+function load(){
+  try{if(window.__SEED_STATE__){return typeof window.__SEED_STATE__==='string'?JSON.parse(window.__SEED_STATE__):window.__SEED_STATE__;}}catch(e){}
+  try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}
+  return{tasks:{},cards:{},quiz:{},examDate:""};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ---------- Helpers ---------- */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+function domDot(d){return `<span class="dot" style="background:${DOMAINS[d]?DOMAINS[d].c:'var(--ink-soft)'}"></span>`;}
+function perfColor(p){return p>=75?'var(--good)':p>=50?'var(--warn)':'var(--crit)';}
+function perfBg(p){return p>=75?'var(--good-bg)':p>=50?'var(--warn-bg)':'var(--crit-bg)';}
+
+/* ---------- Readiness ---------- */
+function quizStats(){
+  let tc=0,tt=0,per={};
+  for(const k in DOMAINS){const q=S.quiz[k]||{c:0,t:0};per[k]=q;tc+=q.c;tt+=q.t;}
+  return{correct:tc,total:tt,acc:tt?Math.round(tc/tt*100):null,per};
+}
+function daysDone(){
+  let n=0;PLAN.forEach(x=>{if(x.d){const done=(x.tasks||[]).every((_,i)=>S.tasks[x.d+"_"+i]);if(done&&x.tasks)n++;}});return n;
+}
+function cardsKnown(){let n=0;for(const k in S.cards)if(S.cards[k]==='known')n++;return n;}
+function readiness(){
+  const qs=quizStats();const qAcc=qs.total?qs.correct/qs.total:0;
+  const dFrac=daysDone()/20;const cFrac=cardsKnown()/CARDS.length;
+  const r=Math.round((0.6*qAcc+0.2*dFrac+0.2*cFrac)*100);
+  return Math.min(100,r);
+}
+function refreshHeader(){
+  const r=readiness();$("#readfill").style.width=r+"%";$("#readval").textContent=r+"%";
+  // countdown
+  const cd=$("#countdown");
+  if(S.examDate){
+    const diff=Math.ceil((new Date(S.examDate+"T00:00:00")-new Date())/86400000);
+    if(diff>=0){cd.innerHTML=`<b>${diff} day${diff===1?'':'s'}</b><br>to exam`;}
+    else{cd.innerHTML=`<b>Exam<br>passed?</b>`;}
+  }else{
+    const dd=daysDone();cd.innerHTML=`<b>${dd}/20</b><br>days done`;
+  }
+}
+
+/* ---------- Tabs ---------- */
+$$(".tab").forEach(t=>t.addEventListener("click",()=>{
+  const id=t.dataset.tab;
+  $$(".tab").forEach(x=>x.classList.toggle("on",x===t));
+  $$(".view").forEach(v=>v.classList.toggle("on",v.id==="v-"+id));
+  $(".views").scrollTop=0;
+  if(id==="stats")renderStats();
+  if(id==="quiz")renderQuizMenu();
+}));
+
+/* ---------- Plan ---------- */
+function renderPlan(){
+  const b=$("#plan-body");b.innerHTML="";
+  PLAN.forEach(x=>{
+    if(x.ph){
+      const ph=document.createElement("div");ph.className="phase";
+      const num=x.ph.split("·")[0].trim();const ttl=x.ph.split("·")[1].trim();
+      ph.innerHTML=`<span class="pn">${num.toUpperCase()}</span><span class="pt">${ttl}</span><span class="line"></span>`;
+      b.appendChild(ph);return;
+    }
+    const done=(x.tasks||[]).every((_,i)=>S.tasks[x.d+"_"+i]);
+    const dm=DOMAINS[x.dom];
+    const el=document.createElement("div");el.className="day"+(done?" done":"");
+    el.innerHTML=`<div class="day-h">
+      <div class="daynum"><span class="dl">DAY</span><span class="dv">${x.d}</span></div>
+      <div class="day-ti"><div class="t">${x.t}</div>
+        <div class="dm">${x.dom==='mix'?'<span class="dot" style="background:var(--accent)"></span>All domains':domDot(x.dom)+dm.n}</div></div>
+    </div>
+    <ul class="tasks">${x.tasks.map((t,i)=>{const ck=!!S.tasks[x.d+"_"+i];return `<li class="${ck?'ck':''}" data-k="${x.d}_${i}"><span class="cb"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span class="tx">${t}</span></li>`;}).join("")}</ul>`;
+    b.appendChild(el);
+  });
+  $$("#plan-body .tasks li").forEach(li=>li.addEventListener("click",()=>{
+    const k=li.dataset.k;S.tasks[k]=!S.tasks[k];save();renderPlan();refreshHeader();
+  }));
+}
+
+/* ---------- Flashcards ---------- */
+let cardFilter="all",cardDeck=[],cardIdx=0;
+function buildDeck(){
+  let pool=CARDS.map((c,i)=>({...c,id:i}));
+  if(cardFilter!=="all")pool=pool.filter(c=>c.d===cardFilter);
+  // review-marked first, then unseen, then known
+  pool.sort((a,b)=>{const rank=x=>S.cards[x.id]==='review'?0:S.cards[x.id]==='known'?2:1;return rank(a)-rank(b);});
+  cardDeck=pool;cardIdx=0;
+}
+function renderChips(){
+  const c=$("#card-chips");
+  const mk=(id,label,dot)=>`<button class="chip ${cardFilter===id?'on':''}" data-f="${id}">${dot||''}${label}</button>`;
+  let h=mk("all","All ("+CARDS.length+")");
+  for(const k of DORDER){const n=CARDS.filter(x=>x.d===k).length;h+=mk(k,DOMAINS[k].n.split(" ")[0]+" ("+n+")",domDot(k));}
+  c.innerHTML=h;
+  $$("#card-chips .chip").forEach(ch=>ch.addEventListener("click",()=>{cardFilter=ch.dataset.f;buildDeck();renderCard();renderChips();}));
+}
+function renderCard(){
+  const fc=$("#fc");fc.classList.remove("flip");
+  if(!cardDeck.length){$("#fc-q").textContent="No cards.";return;}
+  const c=cardDeck[cardIdx];const dm=DOMAINS[c.d];
+  const known=S.cards[c.id]==='known';
+  $("#fc-tag-f").innerHTML=domDot(c.d)+dm.n+(known?'<span class="badge-known">known</span>':'');
+  $("#fc-tag-b").innerHTML=domDot(c.d)+dm.n;
+  $("#fc-q").textContent=c.q;
+  $("#fc-a").innerHTML=c.a;
+  $("#fc-ctr").textContent=`Card ${cardIdx+1} of ${cardDeck.length}`;
+}
+$("#fc").addEventListener("click",()=>$("#fc").classList.toggle("flip"));
+$("#fc").addEventListener("keydown",e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();$("#fc").classList.toggle("flip");}});
+$("#btn-next").addEventListener("click",()=>{cardIdx=(cardIdx+1)%cardDeck.length;renderCard();});
+$("#btn-prev").addEventListener("click",()=>{cardIdx=(cardIdx-1+cardDeck.length)%cardDeck.length;renderCard();});
+$("#btn-shuffle").addEventListener("click",()=>{for(let i=cardDeck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cardDeck[i],cardDeck[j]]=[cardDeck[j],cardDeck[i]];}cardIdx=0;renderCard();});
+$("#btn-know").addEventListener("click",()=>{const c=cardDeck[cardIdx];S.cards[c.id]='known';save();advance();});
+$("#btn-rev").addEventListener("click",()=>{const c=cardDeck[cardIdx];S.cards[c.id]='review';save();advance();});
+function advance(){if(cardIdx<cardDeck.length-1){cardIdx++;}renderCard();refreshHeader();}
+
+/* ---------- Quiz ---------- */
+let quizSet=[],quizPos=0,quizAnswered=false,quizSel=[],quizRight=0,quizMode="";
+function renderQuizMenu(){
+  $("#quiz-menu").style.display="";$("#quiz-run").style.display="none";
+  const qs=quizStats();
+  $("#acc-smart").textContent=qs.acc!==null?qs.acc+"%":"";
+  $("#acc-exam").textContent=qs.acc!==null?qs.acc+"%":"";
+  const dl=$("#dom-list");dl.innerHTML="";
+  for(const k of DORDER){
+    const p=qs.per[k];const acc=p.t?Math.round(p.c/p.t*100):null;
+    const n=QUIZ.filter(x=>x.d===k).length;
+    const pill=acc===null?`<span class="pill" style="background:var(--surface-2);color:var(--ink-soft)">untested</span>`:`<span class="pill" style="background:${perfBg(acc)};color:${perfColor(acc)}">${acc}%</span>`;
+    const btn=document.createElement("button");btn.className="dom-btn";
+    btn.innerHTML=`${domDot(k)}<span class="nm">${DOMAINS[k].n}</span><span class="wt">${DOMAINS[k].w}% · ${n}Q</span>${pill}`;
+    btn.addEventListener("click",()=>startQuiz("dom",k));
+    dl.appendChild(btn);
+  }
+}
+$$(".mode").forEach(m=>m.addEventListener("click",()=>startQuiz(m.dataset.mode)));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function startQuiz(mode,dom){
+  quizMode=mode;let pool=QUIZ.map((q,i)=>({...q,id:i}));
+  if(mode==="dom"){quizSet=shuffle(pool.filter(q=>q.d===dom));}
+  else if(mode==="exam"){quizSet=shuffle(pool).slice(0,Math.min(25,pool.length));}
+  else{ // smart: weight toward weak/untested
+    const qs=quizStats();
+    const weight=k=>{const p=qs.per[k];if(!p.t)return 3;const acc=p.c/p.t;return acc<0.5?3:acc<0.75?2:1;};
+    let weighted=[];pool.forEach(q=>{const w=weight(q.d);for(let i=0;i<w;i++)weighted.push(q);});
+    weighted=shuffle(weighted);const seen=new Set();quizSet=[];
+    for(const q of weighted){if(!seen.has(q.id)){seen.add(q.id);quizSet.push(q);}if(quizSet.length>=15)break;}
+  }
+  quizPos=0;quizRight=0;
+  $("#quiz-menu").style.display="none";$("#quiz-run").style.display="";
+  renderQuestion();
+}
+function renderQuestion(){
+  const q=quizSet[quizPos];quizAnswered=false;quizSel=[];
+  const multi=Array.isArray(q.c);
+  const dm=DOMAINS[q.d];
+  const run=$("#quiz-run");
+  run.innerHTML=`
+    <div class="qhead"><span class="qmeta">Q ${quizPos+1} / ${quizSet.length}</span><button id="q-quit">Exit</button></div>
+    <div class="qprog"><div style="width:${quizPos/quizSet.length*100}%"></div></div>
+    <div class="qtag">${domDot(q.d)}${dm.n}${multi?'<span class="qmulti">select '+q.c.length+'</span>':''}</div>
+    <div class="qtext">${q.q}</div>
+    <div class="opts" id="opts">${q.o.map((o,i)=>`<button class="opt" data-i="${i}"><span class="mk">${String.fromCharCode(65+i)}</span><span>${o}</span></button>`).join("")}</div>
+    <div id="exp-slot"></div>
+    <button class="qbtn" id="q-submit" disabled>${multi?'Submit':'Submit answer'}</button>`;
+  $("#q-quit").addEventListener("click",renderQuizMenu);
+  $$("#opts .opt").forEach(op=>op.addEventListener("click",()=>{
+    if(quizAnswered)return;const i=+op.dataset.i;
+    if(multi){const p=quizSel.indexOf(i);if(p>=0){quizSel.splice(p,1);op.classList.remove("sel");}else{quizSel.push(i);op.classList.add("sel");}}
+    else{quizSel=[i];$$("#opts .opt").forEach(o=>o.classList.remove("sel"));op.classList.add("sel");}
+    $("#q-submit").disabled=quizSel.length===0;
+  }));
+  $("#q-submit").addEventListener("click",submitAnswer);
+}
+function submitAnswer(){
+  if(quizAnswered){nextQuestion();return;}
+  quizAnswered=true;const q=quizSet[quizPos];
+  const correct=Array.isArray(q.c)?q.c:[q.c];
+  const ok=correct.length===quizSel.length&&correct.every(c=>quizSel.includes(c));
+  $$("#opts .opt").forEach(op=>{const i=+op.dataset.i;op.disabled=true;
+    if(correct.includes(i))op.classList.add("correct");
+    else if(quizSel.includes(i))op.classList.add("wrong");
+  });
+  // record
+  S.quiz[q.d]=S.quiz[q.d]||{c:0,t:0};S.quiz[q.d].t++;if(ok){S.quiz[q.d].c++;quizRight++;}save();
+  $("#exp-slot").innerHTML=`<div class="exp ${ok?'ok':'no'}"><div class="eh">${ok?'✓ Correct':'✗ Not quite'}</div>${q.e}</div>`;
+  const btn=$("#q-submit");btn.disabled=false;
+  btn.textContent=quizPos<quizSet.length-1?"Next question ›":"See results";
+  refreshHeader();
+}
+function nextQuestion(){if(quizPos<quizSet.length-1){quizPos++;renderQuestion();$(".views").scrollTop=0;}else{showResults();}}
+function showResults(){
+  const pct=Math.round(quizRight/quizSet.length*100);
+  const col=perfColor(pct);
+  const verdict=pct>=80?"Strong — exam-ready range":pct>=70?"Passing range — keep drilling":pct>=50?"Getting there — review weak spots":"Needs work — revisit the domain";
+  const circ=2*Math.PI*64;const off=circ*(1-pct/100);
+  $("#quiz-run").innerHTML=`
+    <h2 class="vh" style="text-align:center">Set complete</h2>
+    <div class="res-ring"><svg viewBox="0 0 150 150" width="150" height="150">
+      <circle cx="75" cy="75" r="64" fill="none" stroke="var(--surface-2)" stroke-width="12"/>
+      <circle cx="75" cy="75" r="64" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}" transform="rotate(-90 75 75)"/>
+    </svg><div class="num"><span class="p" style="color:${col}">${pct}%</span><span class="s">${quizRight}/${quizSet.length}</span></div></div>
+    <div class="res-verdict">${verdict}</div>
+    <div class="res-sub">Your per-domain accuracy is updated in Stats.</div>
+    <button class="qbtn" id="q-again">Back to quiz menu</button>
+    <button class="qbtn ghost" id="q-stats" style="margin-top:10px">View my weak spots →</button>`;
+  $("#q-again").addEventListener("click",renderQuizMenu);
+  $("#q-stats").addEventListener("click",()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x.dataset.tab==='stats'));$$(".view").forEach(v=>v.classList.toggle("on",v.id==="v-stats"));renderStats();$(".views").scrollTop=0;});
+  refreshHeader();
+}
+
+/* ---------- Stats ---------- */
+function renderStats(){
+  const r=readiness();const qs=quizStats();
+  $("#s-big").textContent=r+"%";
+  const verdict=r>=80?"Exam-ready":r>=65?"On track":r>=40?"Building up":"Just getting started";
+  $("#s-big").style.color=r>=80?'var(--good)':r>=65?'var(--accent)':r>=40?'var(--warn)':'var(--ink)';
+  $("#s-verdict").textContent=verdict;
+  $("#s-note").textContent=qs.total?`Based on ${qs.total} quiz answers, ${daysDone()}/20 days, ${cardsKnown()} cards known.`:"Take a quiz to calibrate your readiness — quiz accuracy is 60% of this score.";
+  $("#s-quiz").textContent=qs.acc!==null?qs.acc+"%":"—";
+  $("#s-days").textContent=daysDone()+"/20";
+  $("#s-cards").textContent=cardsKnown();
+  // mastery bars
+  const m=$("#mastery");m.innerHTML="";
+  let weak=null,weakAcc=101;
+  for(const k of DORDER){
+    const p=qs.per[k];const acc=p.t?Math.round(p.c/p.t*100):null;
+    if(acc!==null&&acc<weakAcc){weakAcc=acc;weak=k;}
+    const col=acc===null?'var(--border-strong)':perfColor(acc);
+    const w=acc===null?4:acc;
+    m.innerHTML+=`<div class="mbar"><div class="mbh">${domDot(k)}<span class="mbn">${DOMAINS[k].n}</span><span class="mbv" style="color:${acc===null?'var(--ink-soft)':col}">${acc===null?'—':acc+'%'}</span></div><div class="track"><div style="width:${w}%;background:${col}"></div></div></div>`;
+  }
+  // focus card
+  const fs=$("#focus-slot");
+  // pick weakest tested; if none tested, highest-weight untested
+  let focusK=weak;
+  if(!focusK){focusK=DORDER.find(k=>!qs.per[k].t)||"d4";}
+  if(focusK){
+    const untested=!qs.per[focusK].t;
+    fs.innerHTML=`<div class="focus-card"><div class="fl">⚡ Focus here next</div><div class="ft">${DOMAINS[focusK].n}</div><div class="fd">${untested?"You haven't tested this domain yet — it's "+DOMAINS[focusK].w+"% of the exam. Run a quiz for it.":"Your lowest domain at "+weakAcc+"%. Re-read its Notion page and clear its flashcards, then re-quiz."}</div></div>`;
+  }else fs.innerHTML="";
+  // exam date
+  $("#examdate").value=S.examDate||"";
+}
+$("#examdate").addEventListener("change",e=>{S.examDate=e.target.value;save();refreshHeader();});
+$("#btn-reset").addEventListener("click",()=>{
+  if(confirm("Reset ALL progress — plan checkmarks, flashcard status, and quiz scores? This can't be undone.")){
+    S={tasks:{},cards:{},quiz:{},examDate:""};save();renderPlan();buildDeck();renderCard();renderChips();renderStats();refreshHeader();
+  }
+});
+
+/* ---------- Init ---------- */
+renderPlan();renderChips();buildDeck();renderCard();refreshHeader();
+</script>
